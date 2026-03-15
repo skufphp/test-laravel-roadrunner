@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: docker/php.Dockerfile
-      target: php-base
+      target: development
       args:
         INSTALL_XDEBUG: "true"
     restart: unless-stopped
