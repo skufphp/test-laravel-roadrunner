@@ -1,0 +1,122 @@
+services:
+  # Настройки RoadRunner для Production
+  laravel-roadrunner:
+    build:
+      context: .
+      dockerfile: docker/php.Dockerfile
+      target: production
+    image: laravel-roadrunner:latest
+    pull_policy: never
+    restart: unless-stopped
+    working_dir: /var/www/laravel
+    command: [ "rr", "serve", "-c", "/var/www/laravel/.rr.yaml" ]
+    networks:
+      - laravel-roadrunner-network
+    depends_on:
+      laravel-postgres-rr:
+        condition: service_healthy
+      laravel-redis-rr:
+        condition: service_healthy
+    healthcheck:
+      test: >-
+        curl --silent --show-error --fail --max-time 3 --noproxy '*'
+        http://127.0.0.1:2114/health?plugin=http >/dev/null
+        || curl --silent --show-error --fail --max-time 3 --noproxy '*'
+        http://127.0.0.1:8000/up >/dev/null
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 35s
+
+  # База данных PostgreSQL
+  laravel-postgres-rr:
+    image: postgres:18.2-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - laravel-roadrunner-network
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Хранилище данных Redis
+  laravel-redis-rr:
+    image: redis:8.6-alpine
+    restart: unless-stopped
+    command: [ "redis-server", "--appendonly", "yes" ]
+    volumes:
+      - redis-data:/data
+    networks:
+      - laravel-roadrunner-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Queue Worker — обработка очередей Laravel
+  laravel-queue-rr:
+    image: laravel-roadrunner:latest
+    pull_policy: never
+    restart: unless-stopped
+    working_dir: /var/www/laravel
+    command: [ "php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600" ]
+    networks:
+      - laravel-roadrunner-network
+    depends_on:
+      laravel-postgres-rr:
+        condition: service_healthy
+      laravel-redis-rr:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "ps aux | grep -v grep | grep 'queue:work' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # Scheduler — планировщик задач Laravel (cron)
+  laravel-scheduler-rr:
+    image: laravel-roadrunner:latest
+    pull_policy: never
+    restart: unless-stopped
+    working_dir: /var/www/laravel
+    command: [ "sh", "-c", "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done" ]
+    networks:
+      - laravel-roadrunner-network
+    depends_on:
+      laravel-postgres-rr:
+        condition: service_healthy
+      laravel-redis-rr:
+        condition: service_healthy
+
+  # Сервис для автоматического запуска миграций при деплое
+  migrate:
+    image: laravel-roadrunner:latest
+    pull_policy: never
+    restart: "no"
+    profiles: [ "migrate" ]
+    working_dir: /var/www/laravel
+    command: [ "php", "artisan", "migrate", "--force" ]
+    depends_on:
+      laravel-postgres-rr:
+        condition: service_healthy
+    networks:
+      - laravel-roadrunner-network
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  laravel-roadrunner-network:
+    driver: bridge

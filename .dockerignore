@@ -1,0 +1,48 @@
+# ==============================================================================
+# .dockerignore — исключения из контекста сборки Docker
+# ==============================================================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+.vscode/
+
+# Docker (не нужны внутри образа)
+docker-compose*.yml
+Makefile
+.dockerignore
+
+# Документация
+docs/
+*.md
+LICENSE
+
+# Переменные окружения (секреты!)
+.env
+.env.*
+!.env.example
+
+# Node.js (собирается в отдельном stage)
+node_modules/
+
+# Тесты
+tests/
+phpunit.xml
+.phpunit.result.cache
+
+# Кеши и логи
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Кеши Laravel (могут содержать dev-зависимости)
+bootstrap/cache/*.php
