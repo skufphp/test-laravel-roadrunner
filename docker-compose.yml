@@ -7,6 +7,7 @@ services:
       target: development
       args:
         INSTALL_XDEBUG: "true"
+    image: laravel-roadrunner:dev
     restart: unless-stopped
     working_dir: /var/www/laravel
     volumes:
@@ -93,6 +94,46 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+    # Queue Worker — обработка очередей Laravel (dev)
+  laravel-queue-rr:
+    image: laravel-roadrunner:dev
+    pull_policy: never
+    restart: unless-stopped
+    working_dir: /var/www/laravel
+    volumes:
+      - .:/var/www/laravel
+    command: [ "php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600" ]
+    networks:
+      - laravel-roadrunner-network
+    depends_on:
+      laravel-postgres-rr:
+        condition: service_healthy
+      laravel-redis-rr:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "ps aux | grep -v grep | grep 'queue:work' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # Scheduler — планировщик задач Laravel (dev)
+  laravel-scheduler-rr:
+    image: laravel-roadrunner:dev
+    pull_policy: never
+    restart: unless-stopped
+    working_dir: /var/www/laravel
+    volumes:
+      - .:/var/www/laravel
+    command: [ "sh", "-c", "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done" ]
+    networks:
+      - laravel-roadrunner-network
+    depends_on:
+      laravel-postgres-rr:
+        condition: service_healthy
+      laravel-redis-rr:
+        condition: service_healthy
 
   # Только для разработки: интерфейс управления БД (pgAdmin)
   laravel-pgadmin-rr:
