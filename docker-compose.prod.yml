@@ -36,7 +36,6 @@ x-laravel-env: &laravel-env
   REDIS_PORT: ${REDIS_PORT}
   REDIS_PASSWORD: ${REDIS_PASSWORD}
 
-x-roadrunner-env: &roadrunner-env
   OCTANE_SERVER: ${OCTANE_SERVER}
   RR_HTTP_NUM_WORKERS: ${RR_HTTP_NUM_WORKERS}
   RR_HTTP_MAX_JOBS: ${RR_HTTP_MAX_JOBS}
@@ -55,7 +54,6 @@ services:
     restart: unless-stopped
     environment:
       <<: *laravel-env
-      <<: *roadrunner-env
     working_dir: /var/www/laravel
     command: >
       sh -c "
