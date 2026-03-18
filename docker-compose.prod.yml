@@ -50,7 +50,6 @@ services:
       target: production
     image: laravel-roadrunner:latest
     container_name: laravel-roadrunner
-    pull_policy: never
     restart: unless-stopped
     environment:
       <<: *laravel-env

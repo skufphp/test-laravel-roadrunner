@@ -42,7 +42,6 @@ x-laravel-env: &laravel-env
   RR_HTTP_NUM_WORKERS: ${RR_HTTP_NUM_WORKERS}
   RR_HTTP_MAX_JOBS: ${RR_HTTP_MAX_JOBS}
   RR_LOG_LEVEL: ${RR_LOG_LEVEL}
-  RR_LOG_LEVEL_PROD: ${RR_LOG_LEVEL_PROD}
 
 services:
   # Настройки RoadRunner для Production
@@ -52,7 +51,7 @@ services:
       dockerfile: docker/php.Dockerfile
       target: production
     image: laravel-roadrunner:latest
-    pull_policy: never
+    container_name: laravel-roadrunner
     restart: unless-stopped
     environment:
       <<: *laravel-env
@@ -86,6 +85,7 @@ services:
   # База данных PostgreSQL
   laravel-postgres-rr:
     image: postgres:18.2-alpine
+    container_name: laravel-postgres-rr
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_DATABASE}
@@ -105,6 +105,7 @@ services:
   # Хранилище данных Redis
   laravel-redis-rr:
     image: redis:8.6-alpine
+    container_name: laravel-redis-rr
     restart: unless-stopped
     command: [ "redis-server", "--appendonly", "yes" ]
     volumes:
@@ -121,6 +122,7 @@ services:
   # Queue Worker — обработка очередей Laravel
   laravel-queue-rr:
     image: laravel-roadrunner:latest
+    container_name: laravel-queue-rr
     pull_policy: never
     restart: unless-stopped
     environment:
@@ -144,6 +146,7 @@ services:
   # Scheduler — планировщик задач Laravel (cron)
   laravel-scheduler-rr:
     image: laravel-roadrunner:latest
+    container_name: laravel-scheduler-rr
     pull_policy: never
     restart: unless-stopped
     environment:
@@ -165,5 +168,3 @@ volumes:
 networks:
   laravel-roadrunner-network:
     driver: bridge
-
-

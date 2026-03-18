@@ -8,6 +8,7 @@ services:
       args:
         INSTALL_XDEBUG: "true"
     image: laravel-roadrunner:dev
+    container_name: laravel-roadrunner
     restart: unless-stopped
     working_dir: /var/www/laravel
     volumes:
@@ -35,6 +36,8 @@ services:
   # Node.js для сборки фронтенда и Hot Module Replacement (HMR)
   laravel-node-rr:
     image: node:24-alpine
+    container_name: laravel-node-rr
+    restart: unless-stopped
     working_dir: /var/www/laravel
     volumes:
       - .:/var/www/laravel
@@ -59,6 +62,7 @@ services:
   # База данных PostgreSQL
   laravel-postgres-rr:
     image: postgres:18.2-alpine
+    container_name: laravel-postgres-rr
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_DATABASE}
@@ -80,6 +84,7 @@ services:
   # Хранилище данных Redis
   laravel-redis-rr:
     image: redis:8.6-alpine
+    container_name: laravel-redis-rr
     restart: unless-stopped
     command: [ "redis-server", "--appendonly", "yes" ]
     volumes:
@@ -98,6 +103,7 @@ services:
     # Queue Worker — обработка очередей Laravel (dev)
   laravel-queue-rr:
     image: laravel-roadrunner:dev
+    container_name: laravel-queue-rr
     pull_policy: never
     restart: unless-stopped
     working_dir: /var/www/laravel
@@ -121,6 +127,7 @@ services:
   # Scheduler — планировщик задач Laravel (dev)
   laravel-scheduler-rr:
     image: laravel-roadrunner:dev
+    container_name: laravel-scheduler-rr
     pull_policy: never
     restart: unless-stopped
     working_dir: /var/www/laravel
@@ -138,6 +145,7 @@ services:
   # Только для разработки: интерфейс управления БД (pgAdmin)
   laravel-pgadmin-rr:
     image: dpage/pgadmin4:latest
+    container_name: laravel-pgadmin-rr
     restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
