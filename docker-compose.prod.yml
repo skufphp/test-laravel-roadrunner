@@ -49,6 +49,7 @@ services:
       dockerfile: docker/php.Dockerfile
       target: production
     image: laravel-roadrunner:latest
+    pull_policy: never
     container_name: laravel-roadrunner
     restart: unless-stopped
     environment:
