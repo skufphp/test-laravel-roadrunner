@@ -153,7 +153,7 @@ services:
     environment:
       <<: *laravel-env
     working_dir: /var/www/laravel
-    command: [ "sh", "-c", "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done" ]
+    command: [ "php", "artisan", "schedule:work" ]
     networks:
       - laravel-roadrunner-network
     depends_on:
